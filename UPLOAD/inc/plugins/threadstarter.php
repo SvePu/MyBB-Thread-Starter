@@ -37,7 +37,7 @@ function threadstarter_info()
 		"author"		=>	"SvePu",
 		"authorsite"	=> 	"https://github.com/SvePu",
 		"codename"		=>	"threadstarter",
-		"version"		=>	"1.0",
+		"version"		=>	"1.1",
 		"compatibility"	=>	"18*"
 	);
 	
@@ -168,7 +168,8 @@ function threadstarter_deactivate()
 function postbit_threadstarter(&$post) {
 	global $thread, $mybb, $settings, $postcounter, $theme;	
 	
-	if ($settings['threadstarter_choise'] == 1 && !empty($settings['threadstarter_text'])){
+	if ($settings['threadstarter_choise'] == 1 && !empty($settings['threadstarter_text']))
+	{
 		$threadstarter = "<span class=\"ts_text\">".htmlspecialchars_uni($settings['threadstarter_text'])."</span>";
 	}
 	else if ($settings['threadstarter_choise'] == 2 && !empty($settings['threadstarter_image'])) 
@@ -181,10 +182,18 @@ function postbit_threadstarter(&$post) {
 		{
 			$tsimage = $settings['threadstarter_image'];
 		}
-		list($width, $height, $type, $width_height) = getimagesize($tsimage);
-		$threadstarter = "<img class=\"ts_image\" ".$width_height." src=\"".$tsimage."\" alt=\"threadstarter\" />";
+		
+		if (@getimagesize($tsimage)) // Check if image exsits
+		{
+			list($width, $height, $type, $width_height) = getimagesize($tsimage);
+			$threadstarter = "<img class=\"ts_image\" ".$width_height." src=\"".$tsimage."\" alt=\"threadstarter\" />";
+		}
+		else // Fallback to default thread starter image if image in settings path or theme image folder doesn't exists
+		{
+			$threadstarter = "<img class=\"ts_image\" src=\"".$settings['bburl']."/images/default_ts_image.png\" alt=\"threadstarter\" width=\"100\" height=\"20\" />";
+		}
 	}
-	else
+	else // Fallback to default text note if setting input fields are empty
 	{
 		$threadstarter = "<span class=\"ts_text\">ThreadStarter</span>";
 	}

@@ -37,7 +37,7 @@ function threadstarter_info()
 		"author"		=>	"SvePu",
 		"authorsite"	=> 	"https://github.com/SvePu",
 		"codename"		=>	"threadstarter",
-		"version"		=>	"1.1",
+		"version"		=>	"1.2",
 		"compatibility"	=>	"18*"
 	);
 	
@@ -198,7 +198,7 @@ function postbit_threadstarter(&$post) {
 		$threadstarter = "<span class=\"ts_text\">ThreadStarter</span>";
 	}
 	
-	if ($settings['threadstarter_enable'] != 0) 
+	if ($settings['threadstarter_enable'] != 0 && $thread ['uid'] != 0) 
 	{	
 		$post['threadstarter'] = "";
 		if ($post['uid'] == $thread ['uid'] && $postcounter != 1) 

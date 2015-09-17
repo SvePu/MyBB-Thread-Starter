@@ -37,7 +37,7 @@ function threadstarter_info()
 		"author"		=>	"SvePu",
 		"authorsite"	=> 	"https://github.com/SvePu",
 		"codename"		=>	"threadstarter",
-		"version"		=>	"1.2",
+		"version"		=>	"1.3",
 		"compatibility"	=>	"18*"
 	);
 	
@@ -168,50 +168,60 @@ function threadstarter_deactivate()
 function postbit_threadstarter(&$post) {
 	global $thread, $mybb, $settings, $postcounter, $theme;	
 	
-	if ($settings['threadstarter_choise'] == 1 && !empty($settings['threadstarter_text']))
+	if ($settings['threadstarter_enable'] != 0 && $thread ['uid'] != 0) 
 	{
-		$threadstarter = "<span class=\"ts_text\">".htmlspecialchars_uni($settings['threadstarter_text'])."</span>";
-	}
-	else if ($settings['threadstarter_choise'] == 2 && !empty($settings['threadstarter_image'])) 
-	{
-		if (strpos($mybb->settings['threadstarter_image'], '{$theme}') !== false) 
+		if ($settings['threadstarter_choise'] == 1)
 		{
-			$tsimage = str_replace('{$theme}' , $theme['imgdir'] , $settings['threadstarter_image']);
-		} 
-		else 
-		{
-			$tsimage = $settings['threadstarter_image'];
+			if (!empty($settings['threadstarter_text']))
+			{
+				$threadstarter = "<span class=\"ts_text\">".htmlspecialchars_uni($settings['threadstarter_text'])."</span>";
+			}
+			else
+			{
+				$threadstarter = "<span class=\"ts_text\">ThreadStarter</span>";
+			}		
 		}
 		
-		if (@getimagesize($tsimage)) // Check if image exsits
+		if ($settings['threadstarter_choise'] == 2) 
 		{
-			list($width, $height, $type, $width_height) = getimagesize($tsimage);
-			$threadstarter = "<img class=\"ts_image\" ".$width_height." src=\"".$tsimage."\" alt=\"threadstarter\" />";
-		}
-		else // Fallback to default thread starter image if image in settings path or theme image folder doesn't exists
-		{
-			$threadstarter = "<img class=\"ts_image\" src=\"".$settings['bburl']."/images/default_ts_image.png\" alt=\"threadstarter\" width=\"100\" height=\"20\" />";
-		}
-	}
-	else // Fallback to default text note if setting input fields are empty
-	{
-		$threadstarter = "<span class=\"ts_text\">ThreadStarter</span>";
-	}
-	
-	if ($settings['threadstarter_enable'] != 0 && $thread ['uid'] != 0) 
-	{	
+			if (!empty($settings['threadstarter_image']))
+			{
+				if (strpos($mybb->settings['threadstarter_image'], '{$theme}') !== false) 
+				{
+					$tsimage = str_replace('{$theme}' , $theme['imgdir'] , $settings['threadstarter_image']);
+				} 
+				else 
+				{
+					$tsimage = $settings['threadstarter_image'];
+				}
+				
+				if (@getimagesize($tsimage))
+				{
+					list($width, $height, $type, $width_height) = getimagesize($tsimage);
+					$threadstarter = "<img class=\"ts_image\" ".$width_height." src=\"".$tsimage."\" alt=\"threadstarter\" />";
+				}
+				else 
+				{
+					$threadstarter = "<img class=\"ts_image\" src=\"".$settings['bburl']."/images/default_ts_image.png\" alt=\"threadstarter\" width=\"100\" height=\"20\" />";
+				}		
+			}
+			else
+			{
+				$threadstarter = "<img class=\"ts_image\" src=\"".$settings['bburl']."/images/default_ts_image.png\" alt=\"threadstarter\" width=\"100\" height=\"20\" />";
+			}			
+		}	
+		
 		$post['threadstarter'] = "";
-		if ($post['uid'] == $thread ['uid'] && $postcounter != 1) 
+		if ($post['uid'] == $thread ['uid'] && $postcounter > 1)
 		{
 			if($mybb->settings['threadstarter_firstpostlink'] != 0)
 			{
-			$post['threadstarter'] = "<a href=\"".$settings['bburl']."/".get_thread_link($thread['tid'])."\">".$threadstarter."</a><br />";
+			$post['threadstarter'] = "<a href=\"".$settings['bburl']."/".get_thread_link($thread['tid'])."&amp;pid=1#pid1\">".$threadstarter."</a><br />";
 			}
 			else
 			{
 			$post['threadstarter'] = $threadstarter."<br />";
 			}
-		}
-	
+		}	
 	}
 }

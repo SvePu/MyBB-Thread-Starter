@@ -89,8 +89,8 @@ function threadstarter_activate()
 		'description'  	=> $db->escape_string($lang->threadstarter_enable_title_desc),
 		'optionscode'  	=> 'yesno',
 		'value'        	=> '1',
-		'disporder'		=> 1,
-		"gid" 			=> (int)$gid
+		'disporder'	=> 1,
+		"gid" 		=> (int)$gid
     );
 	$db->insert_query('settings', $threadstarter_1);
 	

@@ -74,69 +74,68 @@ function threadstarter_activate()
 	$query_add = $db->simple_select("settinggroups", "COUNT(*) as rows");
 	$rows = $db->fetch_field($query_add, "rows");
     $threadstarter_group = array(
-		"name" 			=>	"threadstarter_settings",
-		"title" 		=>	$db->escape_string($lang->threadstarter_settings_title),
+		"name" 		=>	"threadstarter_settings",
+		"title" 	=>	$db->escape_string($lang->threadstarter_settings_title),
 		"description" 	=>	$db->escape_string($lang->threadstarter_settings_title_desc),
-		"disporder"		=> 	$rows+1,
+		"disporder"	=> 	$rows+1,
 		"isdefault" 	=>  0
 	);
     $db->insert_query("settinggroups", $threadstarter_group);
 	$gid = $db->insert_id();
 	
 	$threadstarter_1 = array(
-        'sid'           => 'NULL',
-        'name'			=> 'threadstarter_enable',
-        'title'			=> $db->escape_string($lang->threadstarter_enable_title),
-        'description'  	=> $db->escape_string($lang->threadstarter_enable_title_desc),
-        'optionscode'  	=> 'yesno',
-        'value'        	=> '1',
-        'disporder'		=> 1,
-        "gid" 			=> (int)$gid
+		'name'		=> 'threadstarter_enable',
+		'title'		=> $db->escape_string($lang->threadstarter_enable_title),
+		'description'  	=> $db->escape_string($lang->threadstarter_enable_title_desc),
+		'optionscode'  	=> 'yesno',
+		'value'        	=> '1',
+		'disporder'		=> 1,
+		"gid" 			=> (int)$gid
     );
 	$db->insert_query('settings', $threadstarter_1);
 	
 	$threadstarter_2 = array(
-		"name"			=> "threadstarter_choise",
-		"title"			=> $db->escape_string($lang->threadstarter_choise_title),
+		"name"		=> "threadstarter_choise",
+		"title"		=> $db->escape_string($lang->threadstarter_choise_title),
 		"description" 	=> $db->escape_string($lang->threadstarter_choise_title_desc),
-        'optionscode'  	=> 'radio \n 1=Text \n 2=Image',
-        'value'        	=> '1',
-		"disporder"		=> 2,
-		"gid" 			=> (int)$gid
+        	'optionscode'  	=> 'radio \n 1=Text \n 2=Image',
+       		'value'        	=> '1',
+		"disporder"	=> 2,
+		"gid" 		=> (int)$gid
 	);
 	$db->insert_query("settings", $threadstarter_2);
 	
 	$threadstarter_3 = array(
-		"name"			=> "threadstarter_text",
-		"title"			=> $db->escape_string($lang->threadstarter_text_title),
+		"name"		=> "threadstarter_text",
+		"title"		=> $db->escape_string($lang->threadstarter_text_title),
 		"description" 	=> $db->escape_string($lang->threadstarter_text_title_desc),
-        'optionscode'  	=> 'text',
-        'value'        	=> '',
-		"disporder"		=> 3,
-		"gid" 			=> (int)$gid
+        	'optionscode'  	=> 'text',
+        	'value'        	=> '',
+		"disporder"	=> 3,
+		"gid" 		=> (int)$gid
 	);
 	$db->insert_query("settings", $threadstarter_3);
 	
 	
     $threadstarter_4 = array(
-		"name"			=> "threadstarter_image",
-		"title"			=> $db->escape_string($lang->threadstarter_image_title),
+		"name"		=> "threadstarter_image",
+		"title"		=> $db->escape_string($lang->threadstarter_image_title),
 		"description" 	=> $db->escape_string($lang->threadstarter_image_title_desc),
-        'optionscode'  	=> 'text',
-        'value'        	=> '',
-		"disporder"		=> 4,
-		"gid" 			=> (int)$gid
+		'optionscode'  	=> 'text',
+		'value'        	=> '',
+		"disporder"	=> 4,
+		"gid" 		=> (int)$gid
 	);
 	$db->insert_query("settings", $threadstarter_4);
 	
 	$threadstarter_5 = array(
-		"name"			=> "threadstarter_firstpostlink",
-		"title"			=> $db->escape_string($lang->threadstarter_firstpostlink_title),
+		"name"		=> "threadstarter_firstpostlink",
+		"title"		=> $db->escape_string($lang->threadstarter_firstpostlink_title),
 		"description" 	=> $db->escape_string($lang->threadstarter_firstpostlink_title_desc),
-        'optionscode'  	=> 'yesno',
-        'value'        	=> '1',
-		"disporder"		=> 5,
-		"gid" 			=> (int)$gid
+		'optionscode'  	=> 'yesno',
+		'value'        	=> '1',
+		"disporder"	=> 5,
+		"gid" 		=> (int)$gid
 	);
 	$db->insert_query("settings", $threadstarter_5);
 	rebuild_settings();
@@ -165,7 +164,8 @@ function threadstarter_deactivate()
 	find_replace_templatesets("postbit_classic", "#".preg_quote('{$post[\'threadstarter\']}')."(\r?)\n#", '', 0);
 }
 
-function postbit_threadstarter(&$post) {
+function postbit_threadstarter(&$post)
+{
 	global $thread, $mybb, $settings, $postcounter, $theme;	
 	
 	if ($settings['threadstarter_enable'] != 0 && $thread ['uid'] != 0) 
@@ -216,11 +216,11 @@ function postbit_threadstarter(&$post) {
 		{
 			if($mybb->settings['threadstarter_firstpostlink'] != 0)
 			{
-			$post['threadstarter'] = "<a href=\"".$settings['bburl']."/".get_thread_link($thread['tid'])."&amp;pid=1#pid1\">".$threadstarter."</a><br />";
+				$post['threadstarter'] = "<a href=\"".$settings['bburl']."/".get_thread_link($thread['tid'])."&amp;pid=1#pid1\">".$threadstarter."</a><br />";
 			}
 			else
 			{
-			$post['threadstarter'] = $threadstarter."<br />";
+				$post['threadstarter'] = $threadstarter."<br />";
 			}
 		}	
 	}

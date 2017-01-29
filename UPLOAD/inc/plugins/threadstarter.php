@@ -31,14 +31,14 @@ function threadstarter_info()
 	$lang->load('config_threadstarter');
 	$info = array
 	(
-		"name"			=>	$db->escape_string($lang->threadstarter),
-		"description"	=>	$db->escape_string($lang->threadstarter_desc),
-		"website"		=>	"https://github.com/SvePu/ThreadStarter",
-		"author"		=>	"SvePu",
-		"authorsite"	=> 	"https://github.com/SvePu",
-		"codename"		=>	"threadstarter",
-		"version"		=>	"1.3",
-		"compatibility"	=>	"18*"
+		"name"		=> $db->escape_string($lang->threadstarter),
+		"description"	=> $db->escape_string($lang->threadstarter_desc),
+		"website"	=> "https://github.com/SvePu/ThreadStarter",
+		"author"	=> "SvePu",
+		"authorsite"	=> "https://github.com/SvePu",
+		"codename"	=> "threadstarter",
+		"version"	=> "1.3",
+		"compatibility"	=> "18*"
 	);
 	
 	$info_desc = '';
@@ -74,10 +74,10 @@ function threadstarter_activate()
 	$query_add = $db->simple_select("settinggroups", "COUNT(*) as rows");
 	$rows = $db->fetch_field($query_add, "rows");
     $threadstarter_group = array(
-		"name" 		=>	"threadstarter_settings",
-		"title" 	=>	$db->escape_string($lang->threadstarter_settings_title),
-		"description" 	=>	$db->escape_string($lang->threadstarter_settings_title_desc),
-		"disporder"	=> 	$rows+1,
+		"name" 		=> "threadstarter_settings",
+		"title" 	=> $db->escape_string($lang->threadstarter_settings_title),
+		"description" 	=> $db->escape_string($lang->threadstarter_settings_title_desc),
+		"disporder"	=>  $rows+1,
 		"isdefault" 	=>  0
 	);
     $db->insert_query("settinggroups", $threadstarter_group);

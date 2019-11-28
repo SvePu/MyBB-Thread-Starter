@@ -37,7 +37,7 @@ function threadstarter_info()
 		"author" => "SvePu",
 		"authorsite" => "https://github.com/SvePu",
 		"codename" => "threadstarter",
-		"version" => "1.3",
+		"version" => "1.4",
 		"compatibility" => "18*"
 	);
 

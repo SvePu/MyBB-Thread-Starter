@@ -70,8 +70,10 @@ function threadstarter_activate()
 {
     global $db, $lang;
     $lang->load('config_threadstarter');
+
     $query_add = $db->simple_select("settinggroups", "COUNT(*) as disorder");
     $disorder = $db->fetch_field($query_add, "disorder");
+
     $threadstarter_group = array(
         "name"      => "threadstarter_settings",
         "title"     => $db->escape_string($lang->threadstarter_settings_title),

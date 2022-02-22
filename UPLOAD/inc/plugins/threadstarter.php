@@ -35,7 +35,7 @@ else
 
 function threadstarter_info()
 {
-    global $plugins_cache, $mybb, $db, $lang;
+    global $plugins_cache, $db, $lang;
     $lang->load('config_threadstarter');
     $info = array(
         "name" => $db->escape_string($lang->threadstarter),
@@ -44,7 +44,7 @@ function threadstarter_info()
         "author" => "SvePu",
         "authorsite" => "https://github.com/SvePu",
         "codename" => "threadstarter",
-        "version" => "1.4",
+        "version" => "1.5",
         "compatibility" => "18*"
     );
 

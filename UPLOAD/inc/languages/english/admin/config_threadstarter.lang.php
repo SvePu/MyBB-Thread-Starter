@@ -4,11 +4,11 @@
 * Licensed under GNU/GPL v3
 */
 
-$l['threadstarter'] = "ThreadStarter";
+$l['threadstarter'] = "MyBB Thread Starter";
 $l['threadstarter_desc'] = "Adds a text note or image to the author's postbit if they are also the author of the thread.";
-$l['threadstarter_settings_title'] = "ThreadStarter Settings";
-$l['threadstarter_settings_title_desc'] = "Settings of ThreadStarter plugin";
-$l['threadstarter_enable_title'] = "Activate ThreadStarter plugin?";
+$l['threadstarter_settings_title'] = "MyBB Thread Starter Settings";
+$l['threadstarter_settings_title_desc'] = "Settings of MyBB Thread Starter plugin";
+$l['threadstarter_enable_title'] = "Activate MyBB Thread Starter plugin?";
 $l['threadstarter_enable_title_desc'] = "Set YES to enable it!";
 $l['threadstarter_choise_title'] = "What do you want show as thread starter note?";
 $l['threadstarter_choise_title_desc'] = "Select text or image.";

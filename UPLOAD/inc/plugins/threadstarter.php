@@ -1,7 +1,7 @@
 <?php
 
 /*
-ThreadStarter Plugin for MyBB
+MyBB-Thread-Starter Plugin for MyBB
 Copyright (C) 2015 SvePu
 
 This program is free software: you can redistribute it and/or modify
@@ -32,7 +32,7 @@ function threadstarter_info()
     $info = array(
         "name" => $db->escape_string($lang->threadstarter),
         "description" => $db->escape_string($lang->threadstarter_desc),
-        "website" => "https://github.com/SvePu/ThreadStarter",
+        "website" => "https://github.com/SvePu/MyBB-Thread-Starter",
         "author" => "SvePu",
         "authorsite" => "https://github.com/SvePu",
         "codename" => "threadstarter",

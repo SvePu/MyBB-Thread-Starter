@@ -2,7 +2,7 @@
 
 /*
 MyBB-Thread-Starter Plugin for MyBB
-Copyright (C) 2015 SvePu
+Copyright (C) 2015-> SvePu
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,7 +23,15 @@ if (!defined("IN_MYBB"))
     die("Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.");
 }
 
-$plugins->add_hook('postbit', 'postbit_threadstarter');
+if (defined('IN_ADMINCP'))
+{
+    $plugins->add_hook("admin_config_settings_begin", 'threadstarter_settings');
+    $plugins->add_hook("admin_page_output_footer", 'threadstarter_settings_peeker');
+}
+else
+{
+    $plugins->add_hook('postbit', 'threadstarter_postbit');
+}
 
 function threadstarter_info()
 {
@@ -41,11 +49,11 @@ function threadstarter_info()
     );
 
     $info_desc = '';
-    $gid_result = $db->simple_select('settinggroups', 'gid', "name = 'threadstarter_settings'", array('limit' => 1));
+    $gid_result = $db->simple_select('settinggroups', 'gid', "name = 'threadstarter'", array('limit' => 1));
     $settings_group = $db->fetch_array($gid_result);
     if (!empty($settings_group['gid']))
     {
-        $info_desc .= "<span style=\"font-size: 0.9em;\">(~<a href=\"index.php?module=config-settings&action=change&gid=" . $settings_group['gid'] . "\"> " . $db->escape_string($lang->threadstarter_settings_title) . " </a>~)</span>";
+        $info_desc .= "<span style=\"font-size: 0.9em;\">(~<a href=\"index.php?module=config-settings&action=change&gid=" . $settings_group['gid'] . "\"> " . $db->escape_string($lang->setting_group_threadstarter) . " </a>~)</span>";
     }
 
     if (is_array($plugins_cache) && is_array($plugins_cache['active']) && $plugins_cache['active']['threadstarter'])
@@ -66,91 +74,95 @@ function threadstarter_info()
     return $info;
 }
 
-function threadstarter_activate()
+function threadstarter_install()
 {
     global $db, $lang;
     $lang->load('config_threadstarter');
 
-    $query_add = $db->simple_select("settinggroups", "COUNT(*) as disorder");
-    $disorder = $db->fetch_field($query_add, "disorder");
-
-    $threadstarter_group = array(
-        "name"      => "threadstarter_settings",
-        "title"     => $db->escape_string($lang->threadstarter_settings_title),
-        "description"   => $db->escape_string($lang->threadstarter_settings_title_desc),
-        "disporder" =>  $disorder + 1,
-        "isdefault"     =>  0
+    $group = array(
+        'name' => 'threadstarter',
+        'title' => $db->escape_string($lang->setting_group_threadstarter),
+        'description' => $db->escape_string($lang->setting_group_threadstarter_desc),
+        'isdefault' => 0
     );
-    $db->insert_query("settinggroups", $threadstarter_group);
-    $gid = $db->insert_id();
 
-    $threadstarter_1 = array(
-        'name'      => 'threadstarter_enable',
-        'title'     => $db->escape_string($lang->threadstarter_enable_title),
-        'description'   => $db->escape_string($lang->threadstarter_enable_title_desc),
-        'optionscode'   => 'yesno',
-        'value'         => '1',
-        'disporder' => 1,
-        "gid"       => (int)$gid
+    $query = $db->simple_select('settinggroups', 'gid', "name='threadstarter'");
+
+    if ($gid = (int)$db->fetch_field($query, 'gid'))
+    {
+        $db->update_query('settinggroups', $group, "gid='{$gid}'");
+    }
+    else
+    {
+        $query = $db->simple_select('settinggroups', 'MAX(disporder) AS disporder');
+        $disporder = (int)$db->fetch_field($query, 'disporder');
+
+        $group['disporder'] = ++$disporder;
+
+        $gid = (int)$db->insert_query('settinggroups', $group);
+    }
+
+    $settings = array(
+        'enable' => array(
+            'optionscode' => 'yesno',
+            'value' => 1
+        ),
+        'choise' => array(
+            'optionscode' => 'radio \n 1=' . $db->escape_string($lang->setting_threadstarter_choise_1) . ' \n 2=' . $db->escape_string($lang->setting_threadstarter_choise_2),
+            'value' => '1'
+        ),
+        'text' => array(
+            'optionscode' => 'text',
+            'value' => ''
+        ),
+        'image' => array(
+            'optionscode' => 'text',
+            'value' => '',
+        ),
+        'firstpostlink' => array(
+            'optionscode' => 'yesno',
+            'value' => 1,
+        )
     );
-    $db->insert_query('settings', $threadstarter_1);
 
-    $threadstarter_2 = array(
-        "name"      => "threadstarter_choise",
-        "title"     => $db->escape_string($lang->threadstarter_choise_title),
-        "description"   => $db->escape_string($lang->threadstarter_choise_title_desc),
-        'optionscode'   => 'radio \n 1=Text \n 2=Image',
-        'value'         => '1',
-        "disporder" => 2,
-        "gid"       => (int)$gid
-    );
-    $db->insert_query("settings", $threadstarter_2);
+    $disporder = 0;
 
-    $threadstarter_3 = array(
-        "name"      => "threadstarter_text",
-        "title"     => $db->escape_string($lang->threadstarter_text_title),
-        "description"   => $db->escape_string($lang->threadstarter_text_title_desc),
-        'optionscode'   => 'text',
-        'value'         => '',
-        "disporder" => 3,
-        "gid"       => (int)$gid
-    );
-    $db->insert_query("settings", $threadstarter_3);
+    foreach ($settings as $key => $setting)
+    {
+        $key = "threadstarter_{$key}";
 
+        $setting['name'] = $db->escape_string($key);
 
-    $threadstarter_4 = array(
-        "name"      => "threadstarter_image",
-        "title"     => $db->escape_string($lang->threadstarter_image_title),
-        "description"   => $db->escape_string($lang->threadstarter_image_title_desc),
-        'optionscode'   => 'text',
-        'value'         => '',
-        "disporder" => 4,
-        "gid"       => (int)$gid
-    );
-    $db->insert_query("settings", $threadstarter_4);
+        $lang_var_title = "setting_{$key}";
+        $lang_var_description = "setting_{$key}_desc";
 
-    $threadstarter_5 = array(
-        "name"      => "threadstarter_firstpostlink",
-        "title"     => $db->escape_string($lang->threadstarter_firstpostlink_title),
-        "description"   => $db->escape_string($lang->threadstarter_firstpostlink_title_desc),
-        'optionscode'   => 'yesno',
-        'value'         => '1',
-        "disporder" => 5,
-        "gid"       => (int)$gid
-    );
-    $db->insert_query("settings", $threadstarter_5);
+        $setting['title'] = $db->escape_string($lang->{$lang_var_title});
+        $setting['description'] = $db->escape_string($lang->{$lang_var_description});
+        $setting['disporder'] = $disporder;
+        $setting['gid'] = $gid;
+
+        $db->insert_query('settings', $setting);
+        ++$disporder;
+    }
+
     rebuild_settings();
-
-    require MYBB_ROOT . "/inc/adminfunctions_templates.php";
-    find_replace_templatesets("postbit", "#" . preg_quote('{$post[\'userstars\']}') . "#i", "{\$post['threadstarter']}\n{\$post['userstars']}");
-    find_replace_templatesets("postbit_classic", "#" . preg_quote('{$post[\'userstars\']}') . "#i", "{\$post['threadstarter']}\n{\$post['userstars']}");
 }
 
-function threadstarter_deactivate()
+function threadstarter_is_installed()
 {
-    global $mybb, $db;
+    global $mybb;
+    if (isset($mybb->settings['threadstarter_enable']))
+    {
+        return true;
+    }
+    return false;
+}
 
-    $result = $db->simple_select('settinggroups', 'gid', "name = 'threadstarter_settings'", array('limit' => 1));
+function threadstarter_uninstall()
+{
+    global $db;
+
+    $result = $db->simple_select('settinggroups', 'gid', "name = 'threadstarter'", array('limit' => 1));
     $group = $db->fetch_array($result);
 
     if (!empty($group['gid']))
@@ -159,13 +171,48 @@ function threadstarter_deactivate()
         $db->delete_query('settings', "gid='{$group['gid']}'");
         rebuild_settings();
     }
+}
 
+function threadstarter_activate()
+{
+    require MYBB_ROOT . "/inc/adminfunctions_templates.php";
+    find_replace_templatesets("postbit", "#" . preg_quote('{$post[\'userstars\']}') . "#i", "{\$post['threadstarter']}\n{\$post['userstars']}");
+    find_replace_templatesets("postbit_classic", "#" . preg_quote('{$post[\'userstars\']}') . "#i", "{\$post['threadstarter']}\n{\$post['userstars']}");
+}
+
+function threadstarter_deactivate()
+{
     require MYBB_ROOT . "/inc/adminfunctions_templates.php";
     find_replace_templatesets("postbit", "#" . preg_quote('{$post[\'threadstarter\']}') . "(\r?)\n#", '', 0);
     find_replace_templatesets("postbit_classic", "#" . preg_quote('{$post[\'threadstarter\']}') . "(\r?)\n#", '', 0);
 }
 
-function postbit_threadstarter(&$post)
+function threadstarter_settings()
+{
+    global $lang, $db, $mybb, $ts_settings_peeker;
+    $lang->load('config_threadstarter');
+    $query = $db->simple_select("settinggroups", "gid as gid", "name='threadstarter'", array('limit' => 1));
+    $gid = $db->fetch_field($query, 'gid');
+    $ts_settings_peeker = ($mybb->input["gid"] == $gid) && ($mybb->request_method != "post");
+}
+
+function threadstarter_settings_peeker()
+{
+    global $ts_settings_peeker;
+    if ($ts_settings_peeker)
+    {
+        echo '<script type="text/javascript">
+        $(document).ready(function(){
+            new Peeker($("#setting_threadstarter_choise_1"), $("#row_setting_threadstarter_text"), 1, true),
+            new Peeker($("#setting_threadstarter_choise_2"), $("#row_setting_threadstarter_text"), 1, false),
+            new Peeker($("#setting_threadstarter_choise_1"), $("#row_setting_threadstarter_image"), 2, false),
+            new Peeker($("#setting_threadstarter_choise_2"), $("#row_setting_threadstarter_image"), 2, true);
+        });
+        </script>';
+    }
+}
+
+function threadstarter_postbit(&$post)
 {
     global $thread, $mybb, $postcounter, $theme;
 

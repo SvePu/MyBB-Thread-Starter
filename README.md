@@ -7,14 +7,14 @@ MyBB 1.8 plugin to add a text note or an image into postbit info of thread start
 * unzip package
 * copy content from "UPLOAD" folder to the forum root on server
 * install & activate the plugn from ACP
-* check the plugin settings at configuration
+* check the plugin settings in configurations
 
 **Full Update:**
 * uninstall plugin from ACP
 * unzip new package
 * copy content from "UPLOAD" folder to the forum root on server
 * install & activate the plugn from ACP
-* check the plugin settings on configuration
+* check the plugin settings in configurations
 
 **Simple Update:**
 * unzip new package

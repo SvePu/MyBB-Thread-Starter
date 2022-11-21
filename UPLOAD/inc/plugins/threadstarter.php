@@ -23,10 +23,25 @@ if (!defined("IN_MYBB"))
     die("Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.");
 }
 
+if (defined('THIS_SCRIPT'))
+{
+    global $templatelist;
+
+    if (isset($templatelist))
+    {
+        $templatelist .= ',';
+    }
+
+    if (THIS_SCRIPT == 'showthread.php')
+    {
+        $templatelist .= 'postbit_threadstarter_text, postbit_threadstarter_image, postbit_threadstarter_link, postbit_threadstarter_link_none';
+    }
+}
+
 if (defined('IN_ADMINCP'))
 {
     $plugins->add_hook("admin_config_settings_begin", 'threadstarter_settings');
-    $plugins->add_hook("admin_page_output_footer", 'threadstarter_settings_peeker');
+    $plugins->add_hook("admin_settings_print_peekers", 'threadstarter_settings_peekers');
 }
 else
 {
@@ -56,7 +71,7 @@ function threadstarter_info()
         $info_desc .= "<span style=\"font-size: 0.9em;\">(~<a href=\"index.php?module=config-settings&action=change&gid=" . $settings_group['gid'] . "\"> " . $db->escape_string($lang->setting_group_threadstarter) . " </a>~)</span>";
     }
 
-    if (is_array($plugins_cache) && is_array($plugins_cache['active']) && $plugins_cache['active']['threadstarter'])
+    if (is_array($plugins_cache) && is_array($plugins_cache['active']) && array_key_exists('threadstarter', $plugins_cache['active']))
     {
         $info_desc .= '<form action="https://www.paypal.com/cgi-bin/webscr" method="post" style="float: right;" target="_blank" />
 <input type="hidden" name="cmd" value="_s-xclick" />
@@ -76,9 +91,31 @@ function threadstarter_info()
 
 function threadstarter_install()
 {
-    global $db, $lang;
+    global $db, $mybb, $lang;
     $lang->load('config_threadstarter');
 
+    /** Add Templates */
+    $templatearray = array(
+        'postbit_threadstarter_text' => '<span class="ts_text">{$tstext}</span>',
+        'postbit_threadstarter_image' => '<img class="ts_image" {$width_height} src="{$tsimage}" alt="threadstarter" />',
+        'postbit_threadstarter_link' => '<a href="{$threadstarter_firstpost}">{$threadstarter}</a><br />',
+        'postbit_threadstarter_link_none' => '{$threadstarter}<br />'
+    );
+
+    foreach ($templatearray as $name => $template)
+    {
+        $template = array(
+            'title' => $db->escape_string($name),
+            'template' => $db->escape_string($template),
+            'version' => $mybb->version_code,
+            'sid' => -2,
+            'dateline' => TIME_NOW
+        );
+
+        $db->insert_query('templates', $template);
+    }
+
+    /** Add Settings */
     $group = array(
         'name' => 'threadstarter',
         'title' => $db->escape_string($lang->setting_group_threadstarter),
@@ -162,15 +199,12 @@ function threadstarter_uninstall()
 {
     global $db;
 
-    $result = $db->simple_select('settinggroups', 'gid', "name = 'threadstarter'", array('limit' => 1));
-    $group = $db->fetch_array($result);
+    $db->delete_query('templates', "title LIKE ('postbit_threadstarter%')");
 
-    if (!empty($group['gid']))
-    {
-        $db->delete_query('settinggroups', "gid='{$group['gid']}'");
-        $db->delete_query('settings', "gid='{$group['gid']}'");
-        rebuild_settings();
-    }
+    $db->delete_query("settinggroups", "name='threadstarter'");
+    $db->delete_query("settings", "name LIKE 'threadstarter_%'");
+
+    rebuild_settings();
 }
 
 function threadstarter_activate()
@@ -189,32 +223,21 @@ function threadstarter_deactivate()
 
 function threadstarter_settings()
 {
-    global $lang, $db, $mybb, $ts_settings_peeker;
+    global $lang;
     $lang->load('config_threadstarter');
-    $query = $db->simple_select("settinggroups", "gid as gid", "name='threadstarter'", array('limit' => 1));
-    $gid = $db->fetch_field($query, 'gid');
-    $ts_settings_peeker = ($mybb->input["gid"] == $gid) && ($mybb->request_method != "post");
 }
 
-function threadstarter_settings_peeker()
+function threadstarter_settings_peekers(&$peekers)
 {
-    global $ts_settings_peeker;
-    if ($ts_settings_peeker)
-    {
-        echo '<script type="text/javascript">
-        $(document).ready(function(){
-            new Peeker($("#setting_threadstarter_choise_1"), $("#row_setting_threadstarter_text"), 1, true),
-            new Peeker($("#setting_threadstarter_choise_2"), $("#row_setting_threadstarter_text"), 1, false),
-            new Peeker($("#setting_threadstarter_choise_1"), $("#row_setting_threadstarter_image"), 2, false),
-            new Peeker($("#setting_threadstarter_choise_2"), $("#row_setting_threadstarter_image"), 2, true);
-        });
-        </script>';
-    }
+    $peekers[] .= 'new Peeker($("#setting_threadstarter_choise_2"), $("#row_setting_threadstarter_text"), 1, false)';
+    $peekers[] .= 'new Peeker($("#setting_threadstarter_choise_1"), $("#row_setting_threadstarter_text"), 1, true)';
+    $peekers[] .= 'new Peeker($("#setting_threadstarter_choise_1"), $("#row_setting_threadstarter_image"), 2, false)';
+    $peekers[] .= 'new Peeker($("#setting_threadstarter_choise_2"), $("#row_setting_threadstarter_image"), 2, true)';
 }
 
 function threadstarter_postbit(&$post)
 {
-    global $thread, $mybb, $postcounter, $theme;
+    global $thread, $mybb, $postcounter, $theme, $templates;
 
     if ($mybb->settings['threadstarter_enable'] == 0 || $thread['uid'] == 0)
     {
@@ -233,7 +256,7 @@ function threadstarter_postbit(&$post)
                 $tstext = htmlspecialchars_uni($mybb->settings['threadstarter_text']);
             }
 
-            $threadstarter = "<span class=\"ts_text\">" .  $tstext . "</span>";
+            eval("\$threadstarter = \"" . $templates->get("postbit_threadstarter_text") . "\";");
             break;
         case 2:
             $tsimage = $mybb->settings['bburl'] . "/images/default_ts_image.png";
@@ -256,7 +279,7 @@ function threadstarter_postbit(&$post)
             if ($imgdim = @getimagesize($tsimage))
             {
                 list($width, $height, $type, $width_height) = $imgdim;
-                $threadstarter = "<img class=\"ts_image\" " . $width_height . " src=\"" . $tsimage . "\" alt=\"threadstarter\" />";
+                eval("\$threadstarter = \"" . $templates->get("postbit_threadstarter_image") . "\";");
             }
             break;
     }
@@ -264,11 +287,13 @@ function threadstarter_postbit(&$post)
     $post['threadstarter'] = "";
     if ($post['uid'] == $thread['uid'] && $postcounter > 1 && !empty($threadstarter))
     {
-        $post['threadstarter'] = $threadstarter . "<br />";
+        eval("\$post['threadstarter'] = \"" . $templates->get("postbit_threadstarter_link_none") . "\";");
 
         if ($mybb->settings['threadstarter_firstpostlink'] != 0)
         {
-            $post['threadstarter'] = "<a href=\"" . $mybb->settings['bburl'] . "/" . get_post_link($thread['firstpost'], $thread['tid']) . "#pid" . $thread['firstpost'] . "\">" . $threadstarter . "</a><br />";
+            $threadstarter_firstpost = $mybb->settings['bburl'] . "/" . get_post_link($thread['firstpost'], $thread['tid']) . "#pid" . $thread['firstpost'];
+
+            eval("\$post['threadstarter'] = \"" . $templates->get("postbit_threadstarter_link") . "\";");
         }
     }
 }

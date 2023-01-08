@@ -202,7 +202,7 @@ function threadstarter_uninstall()
     $db->delete_query('templates', "title LIKE ('postbit_threadstarter%')");
 
     $db->delete_query("settinggroups", "name='threadstarter'");
-    $db->delete_query("settings", "name LIKE 'threadstarter_%'");
+    $db->delete_query("settings", "name LIKE 'threadstarter%'");
 
     rebuild_settings();
 }
@@ -229,15 +229,18 @@ function threadstarter_settings()
 
 function threadstarter_settings_peekers(&$peekers)
 {
-    $peekers[] .= 'new Peeker($("#setting_threadstarter_choise_2"), $("#row_setting_threadstarter_text"), 1, false)';
-    $peekers[] .= 'new Peeker($("#setting_threadstarter_choise_1"), $("#row_setting_threadstarter_text"), 1, true)';
-    $peekers[] .= 'new Peeker($("#setting_threadstarter_choise_1"), $("#row_setting_threadstarter_image"), 2, false)';
-    $peekers[] .= 'new Peeker($("#setting_threadstarter_choise_2"), $("#row_setting_threadstarter_image"), 2, true)';
+    $peekers[] = 'new Peeker($(".setting_threadstarter_enable"), $("#row_setting_threadstarter_choise, #row_setting_threadstarter_text, #row_setting_threadstarter_image, #row_setting_threadstarter_firstpostlink"), 1, true)';
+    $peekers[] = 'new Peeker($("#setting_threadstarter_choise_2"), $("#row_setting_threadstarter_text"), 1, false)';
+    $peekers[] = 'new Peeker($("#setting_threadstarter_choise_1"), $("#row_setting_threadstarter_text"), 1, true)';
+    $peekers[] = 'new Peeker($("#setting_threadstarter_choise_1"), $("#row_setting_threadstarter_image"), 2, false)';
+    $peekers[] = 'new Peeker($("#setting_threadstarter_choise_2"), $("#row_setting_threadstarter_image"), 2, true)';
 }
 
 function threadstarter_postbit(&$post)
 {
     global $thread, $mybb, $postcounter, $theme, $templates;
+
+    $post['threadstarter'] = "";
 
     if ($mybb->settings['threadstarter_enable'] == 0 || $thread['uid'] == 0)
     {
@@ -284,7 +287,6 @@ function threadstarter_postbit(&$post)
             break;
     }
 
-    $post['threadstarter'] = "";
     if ($post['uid'] == $thread['uid'] && $postcounter > 1 && !empty($threadstarter))
     {
         eval("\$post['threadstarter'] = \"" . $templates->get("postbit_threadstarter_link_none") . "\";");

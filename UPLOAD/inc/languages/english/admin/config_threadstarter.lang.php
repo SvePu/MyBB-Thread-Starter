@@ -1,11 +1,11 @@
 <?php
 /*
-* MyBB-Thread-Starter - 1.5 Config Language File English
+* MyBB-Thread-Starter - 1.6 Config Language File English
 * Licensed under GNU/GPL v3
 */
 
 $l['threadstarter'] = "MyBB Thread Starter";
-$l['threadstarter_desc'] = "Adds a text note or image to the author's postbit if they are also the author of the thread.";
+$l['threadstarter_desc'] = "Adds a text note or image to authors postbit if they are also the author of the thread.";
 $l['setting_group_threadstarter'] = "MyBB Thread Starter Settings";
 $l['setting_group_threadstarter_desc'] = "Settings of MyBB Thread Starter plugin";
 $l['setting_threadstarter_enable'] = "Activate MyBB Thread Starter plugin?";
